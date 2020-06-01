@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:ws="http://jax-ws.dev.java.net/spring/core" xmlns:wss="http://jax-ws.dev.java.net/spring/servlet"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-3.2.xsd 
+	http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx-3.2.xsd 
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-3.2.xsd
+	http://jax-ws.dev.java.net/spring/core http://jax-ws.java.net/spring/core.xsd
+	http://jax-ws.dev.java.net/spring/servlet http://jax-ws.java.net/spring/servlet.xsd">
+	
+	<!-- WebService urls -->
+	<wss:binding url="/soap/servicios"> <!-- URL de Servicio -->
+		<wss:service>
+			<ws:service bean="#ConfirmaDispersionWS"/> <!-- Bean tipo @WebService -->
+		</wss:service>	
+	</wss:binding> 
+	
+	<!-- Activates scanning of @Autowired -->	
+	<context:annotation-config />
+	
+	<!-- Scan bean components -->
+	<context:component-scan base-package="com.sap.cxp" />	
+	
+	<!-- Crear session factory para que Spring se conecte a Hibernate (inyeccion) -->
+	<bean id="DBSessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+		<property name="dataSource" ref="DBDataSource"></property>
+		<property name="packagesToScan" value="com/sap/cxp/model" />		
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.InformixDialect</prop>
+				<prop key="hibernate.show_sql">false</prop>
+				<prop key="hibernate.temp.use_jdbc_metadata_defaults">false</prop>  
+			</props>
+		</property>
+	</bean>
+	
+	<!-- Crear datasource dbcp -->
+	<bean id="DBDataSource" class="org.springframework.jndi.JndiObjectFactoryBean"> 
+    	<property name="jndiName" value="java:comp/env/jdbc/poolconex1"/>
+	</bean>
+	
+	<tx:annotation-driven transaction-manager="DBTxManager"/>
+	
+	<bean id="DBTxManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+		<property name="sessionFactory" ref="DBSessionFactory"></property>
+	</bean>
+</beans>
